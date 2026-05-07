@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { MapPin, Phone, Mail, ArrowRight, Calendar, Heart, Share2 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { SEO } from '../components/SEO';
 
 interface Activity {
   id: number;
@@ -76,6 +77,11 @@ export function ActivityDetail() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-12 max-w-7xl mx-auto pb-24">
+      <SEO 
+        title={activity.title} 
+        description={activity.content.substring(0, 150) + '...'} 
+        ogImage={activity.image_url} 
+      />
       {/* Main Content Area */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}

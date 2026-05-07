@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { Search, AlertCircle } from 'lucide-react';
+import { SEO } from '../components/SEO';
 
 interface Activity {
   id: number;
@@ -62,6 +63,7 @@ export function Activities() {
 
   return (
     <div className="flex flex-col gap-8">
+      <SEO title="Daftar Kegiatan" description="Lihat berbagai kegiatan dan laporan terbaru dari PT Kekar Jaya Security." />
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
         <h1 className="text-3xl font-extrabold text-gray-900 uppercase tracking-tight">Daftar Kegiatan</h1>
         <div className="relative w-full md:w-80">

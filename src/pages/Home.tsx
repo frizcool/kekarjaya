@@ -7,10 +7,12 @@ import { RecentActivities } from '../components/RecentActivities';
 import { Career } from '../components/Career';
 import { Contact } from '../components/Contact';
 import { Footer } from '../components/Footer';
+import { SEO } from '../components/SEO';
 
 export function Home() {
   return (
     <div className="flex flex-col bg-white">
+      <SEO title="Beranda" />
       <Hero />
       <About />
       <Services />
