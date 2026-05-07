@@ -131,7 +131,9 @@ export function Activities() {
               )}
               <div className="flex-1 flex flex-col justify-start pt-1">
                 <p className="text-xs font-bold text-blue-600 tracking-widest uppercase mb-2 bg-blue-50 px-2 py-1 inline-block rounded w-fit">
-                  {format(new Date(activity.date), 'dd MMMM yyyy', { locale: id })}
+                  {!isNaN(new Date(activity.date).getTime()) 
+                    ? format(new Date(activity.date), 'dd MMMM yyyy', { locale: id }) 
+                    : 'Tanggal tidak valid'}
                 </p>
                 <h2 className="text-2xl font-extrabold text-gray-900 mb-3 group-hover:text-blue-700 transition-colors leading-tight">
                   <Link to={`/kegiatan/${activity.id}`}>{activity.title}</Link>

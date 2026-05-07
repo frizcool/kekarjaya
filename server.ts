@@ -53,6 +53,39 @@ function setupDatabase() {
     // Column might already exist
   }
 
+  // Settings Table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+  `);
+
+  // Contacts Table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS contacts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      message TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+  try {
+    db.prepare("ALTER TABLE contacts ADD COLUMN ip TEXT").run();
+  } catch (e) {
+    // Column might already exist
+  }
+
+  // IP Blocks Table for Rate Limiting
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS ip_blocks (
+      ip TEXT PRIMARY KEY,
+      attempts INTEGER DEFAULT 0,
+      blocked_until DATETIME
+    );
+  `);
+
   return db;
 }
 
@@ -82,10 +115,125 @@ async function startServer() {
   app.post("/api/login", (req, res) => {
     const { username, password } = req.body;
     // Hardcoded credentials for simplicity as requested by standard prototypes
-    if (username === "admin" && password === "admin123") {
+    let storedPassword = "admin123";
+    try {
+      const pwRow = db.prepare("SELECT value FROM settings WHERE key = 'admin_password'").get();
+      if (pwRow && (pwRow as any).value) {
+        storedPassword = (pwRow as any).value;
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    if (username === "admin" && password === storedPassword) {
       res.json({ token: ADMIN_TOKEN });
     } else {
       res.status(401).json({ error: "Invalid credentials" });
+    }
+  });
+
+  // Change Admin Password
+  app.put("/api/admin/password", adminAuth, (req, res) => {
+    try {
+      const { oldPassword, newPassword } = req.body;
+      
+      let storedPassword = "admin123";
+      const pwRow = db.prepare("SELECT value FROM settings WHERE key = 'admin_password'").get();
+      if (pwRow && (pwRow as any).value) {
+        storedPassword = (pwRow as any).value;
+      }
+
+      if (oldPassword !== storedPassword) {
+        return res.status(400).json({ error: "Password lama tidak sesuai" });
+      }
+
+      db.prepare("INSERT INTO settings (key, value) VALUES ('admin_password', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(newPassword);
+      res.json({ message: "Password updated successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update password" });
+    }
+  });
+
+  // Get all settings
+  app.get("/api/settings", (req, res) => {
+    try {
+      const rows = db.prepare("SELECT * FROM settings").all();
+      const settings = (rows as any[]).reduce((acc: any, row: any) => {
+        acc[row.key] = row.value;
+        return acc;
+      }, {});
+      res.json(settings);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch settings" });
+    }
+  });
+
+  // Update settings
+  app.put("/api/settings", adminAuth, (req, res) => {
+    try {
+      const settings = req.body;
+      const stmt = db.prepare("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value");
+      const insertMany = db.transaction((settings: Record<string, string>) => {
+        for (const [key, value] of Object.entries(settings)) {
+          stmt.run(key, String(value));
+        }
+      });
+      insertMany(settings);
+      res.json({ message: "Settings updated successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update settings" });
+    }
+  });
+
+  // Get all contacts
+  app.get("/api/contacts", adminAuth, (req, res) => {
+    try {
+      const contacts = db.prepare("SELECT * FROM contacts ORDER BY created_at DESC").all();
+      res.json(contacts);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch contacts" });
+    }
+  });
+
+  // Submit contact
+  app.post("/api/contacts", (req, res) => {
+    try {
+      const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.socket.remoteAddress || 'unknown';
+
+      // Check if blocked
+      const blockRow = db.prepare("SELECT * FROM ip_blocks WHERE ip = ?").get(String(clientIp)) as any;
+      if (blockRow && blockRow.attempts >= 5) {
+        if (new Date(blockRow.blocked_until) > new Date()) {
+          return res.status(403).json({ error: "Terlalu banyak percobaan. IP Anda diblokir sementara." });
+        } else {
+          // unblock if time passed
+          db.prepare("UPDATE ip_blocks SET attempts = 0 WHERE ip = ?").run(String(clientIp));
+        }
+      }
+
+      const { name, email, message, captchaAnswer, captchaExpected } = req.body;
+      
+      if (!name || !email || !message || captchaAnswer === undefined) {
+        return res.status(400).json({ error: "Kolom tidak boleh kosong!" });
+      }
+
+      const parsedAns = parseInt(captchaAnswer);
+      const parsedExp = parseInt(captchaExpected);
+
+      if (isNaN(parsedAns) || isNaN(parsedExp) || parsedAns !== parsedExp) {
+         const blockTime = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+         db.prepare("INSERT INTO ip_blocks (ip, attempts, blocked_until) VALUES (?, 1, ?) ON CONFLICT(ip) DO UPDATE SET attempts = attempts + 1, blocked_until = ?").run(String(clientIp), blockTime, blockTime);
+         return res.status(400).json({ error: "Captcha salah!" });
+      }
+
+      const sanitize = (str: string) => str.replace(/</g, "&lt;").replace(/>/g, "&gt;").trim();
+
+      db.prepare("INSERT INTO contacts (name, email, message, ip) VALUES (?, ?, ?, ?)").run(sanitize(name), sanitize(email), sanitize(message), String(clientIp));
+      db.prepare("DELETE FROM ip_blocks WHERE ip = ?").run(String(clientIp));
+      
+      res.status(201).json({ message: "Contact submitted" });
+    } catch (error) {
+      res.status(500).json({ error: "Gagal mengirim pesan" });
     }
   });
 

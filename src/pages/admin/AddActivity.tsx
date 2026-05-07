@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Image as ImageIcon } from 'lucide-react';
 
 export function AdminAddActivity() {
   const [date, setDate] = useState('');
@@ -7,8 +8,9 @@ export function AdminAddActivity() {
   const [location, setLocation] = useState('');
   const [content, setContent] = useState('');
   const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,16 +20,40 @@ export function AdminAddActivity() {
     }
   }, [navigate]);
 
+  useEffect(() => {
+    if (!image) {
+      setImagePreview('');
+      return;
+    }
+    const objectUrl = URL.createObjectURL(image);
+    setImagePreview(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [image]);
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (!date) newErrors.date = 'Tanggal wajib diisi';
+    if (!title.trim()) newErrors.title = 'Judul wajib diisi';
+    else if (title.trim().length < 5) newErrors.title = 'Judul minimal 5 karakter';
+    
+    if (!location.trim()) newErrors.location = 'Lokasi wajib diisi';
+    if (!content.trim()) newErrors.content = 'Isi konten wajib diisi';
+    else if (content.trim().length < 20) newErrors.content = 'Isi konten minimal 20 karakter';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
+    
     setLoading(true);
-    setError('');
 
     try {
       const token = localStorage.getItem('adminToken');
       let imageUrl = null;
 
-      // Upload image first if present
       if (image) {
         const formData = new FormData();
         formData.append('image', image);
@@ -44,13 +70,12 @@ export function AdminAddActivity() {
           const uploadData = await uploadRes.json();
           imageUrl = uploadData.imageUrl;
         } else {
-          setError('Failed to upload image');
+          setErrors({ submit: 'Gagal mengunggah gambar' });
           setLoading(false);
           return;
         }
       }
 
-      // Save activity
       const res = await fetch('/api/activities', {
         method: 'POST',
         headers: {
@@ -69,115 +94,141 @@ export function AdminAddActivity() {
       if (res.ok) {
         navigate('/admin/kegiatan');
       } else {
-        setError('Failed to save activity');
+        setErrors({ submit: 'Gagal menyimpan kegiatan' });
       }
     } catch (err) {
-      setError('An error occurred');
+      setErrors({ submit: 'Terjadi kesalahan sistem' });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col pt-12 items-center w-full px-8 pb-12">
-      <div className="w-full max-w-5xl flex justify-end mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Selamat Datang Admin</h1>
+    <div className="flex flex-col gap-6 max-w-4xl">
+      <div className="flex items-center gap-4">
+        <button 
+          onClick={() => navigate('/admin/kegiatan')}
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5 text-gray-500" />
+        </button>
+        <h1 className="text-2xl font-bold text-gray-900">Tambah Kegiatan Baru</h1>
       </div>
 
-      <div className="w-full max-w-5xl text-left mb-6">
-         <h2 className="text-xl font-bold text-gray-900">Form Tambah Kegiatan</h2>
-      </div>
-
-      <div className="w-full max-w-5xl border border-gray-800 p-8 bg-white">
-        {error && <div className="text-red-500 mb-4">{error}</div>}
+      <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
+        {errors.submit && (
+          <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl font-medium border border-red-100">
+            {errors.submit}
+          </div>
+        )}
         
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          <div className="grid grid-cols-[150px_1fr] items-center gap-4">
-            <label className="font-bold text-gray-900">Tanggal Berita</label>
-            <div className="flex items-center gap-4">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="flex flex-col gap-2">
+              <label className="font-bold text-sm text-gray-700">Tanggal <span className="text-red-500">*</span></label>
               <input 
                 type="date" 
-                className="border-2 border-gray-800 p-2 focus:outline-none w-48"
-                required
                 value={date}
-                onChange={e => setDate(e.target.value)}
+                onChange={e => { setDate(e.target.value); if (errors.date) setErrors({...errors, date: ''}); }}
+                className={`w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow ${errors.date ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'}`}
               />
-              <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+              {errors.date && <span className="text-red-500 text-xs font-bold">{errors.date}</span>}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="font-bold text-sm text-gray-700">Judul Kegiatan <span className="text-red-500">*</span></label>
+              <input 
+                type="text" 
+                value={title}
+                onChange={e => { setTitle(e.target.value); if (errors.title) setErrors({...errors, title: ''}); }}
+                placeholder="Ex. Latihan Rutin Bulanan"
+                className={`w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow ${errors.title ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'}`}
+              />
+              {errors.title && <span className="text-red-500 text-xs font-bold">{errors.title}</span>}
             </div>
           </div>
 
-          <div className="grid grid-cols-[150px_1fr] items-center gap-4">
-             <label className="font-bold text-gray-900">Judul Berita</label>
-             <input 
-                type="text" 
-                className="border-2 border-gray-800 p-2 focus:outline-none w-full"
-                required
-                value={title}
-                onChange={e => setTitle(e.target.value)}
-              />
+          <div className="flex flex-col gap-2">
+            <label className="font-bold text-sm text-gray-700">Lokasi <span className="text-red-500">*</span></label>
+            <input 
+              type="text" 
+              value={location}
+              onChange={e => { setLocation(e.target.value); if (errors.location) setErrors({...errors, location: ''}); }}
+              placeholder="Ex. Kantor Pusat, Jl. Jend. Sudirman"
+              className={`w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow ${errors.location ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'}`}
+            />
+            {errors.location && <span className="text-red-500 text-xs font-bold">{errors.location}</span>}
           </div>
 
-          <div className="grid grid-cols-[150px_1fr] items-center gap-4">
-             <label className="font-bold text-gray-900">Tempat Kegiatan</label>
-             <input 
-                type="text" 
-                className="border-2 border-gray-800 p-2 focus:outline-none w-full"
-                required
-                value={location}
-                onChange={e => setLocation(e.target.value)}
-              />
+          <div className="flex flex-col gap-2">
+            <label className="font-bold text-sm text-gray-700">Isi Konten <span className="text-red-500">*</span></label>
+            <textarea 
+              rows={6}
+              value={content}
+              onChange={e => { setContent(e.target.value); if (errors.content) setErrors({...errors, content: ''}); }}
+              placeholder="Tuliskan detail kegiatan di sini..."
+              className={`w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow resize-none ${errors.content ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'}`}
+            />
+            {errors.content && <span className="text-red-500 text-xs font-bold">{errors.content}</span>}
           </div>
 
-          <div className="grid grid-cols-[150px_1fr] items-start gap-4">
-             <label className="font-bold text-gray-900 pt-2">Isi Kegiatan</label>
-             <textarea 
-                className="border-2 border-gray-800 p-3 h-64 focus:outline-none w-full resize-y"
-                required
-                value={content}
-                onChange={e => setContent(e.target.value)}
-              ></textarea>
+          <div className="flex flex-col gap-2">
+            <label className="font-bold text-sm text-gray-700">Gambar Dokumentasi</label>
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-6 p-4 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
+              <div className="flex-1">
+                <input 
+                  type="file" 
+                  id="imageUpload"
+                  className="hidden" 
+                  accept="image/*"
+                  onChange={e => {
+                    if (e.target.files && e.target.files[0]) {
+                      setImage(e.target.files[0]);
+                    } else {
+                      setImage(null);
+                    }
+                  }}
+                />
+                <div className="flex items-center gap-3">
+                  <label 
+                    htmlFor="imageUpload" 
+                    className="px-6 py-2.5 bg-white border border-gray-200 text-gray-700 font-bold text-sm rounded-lg hover:bg-gray-100 transition-colors cursor-pointer shadow-sm"
+                  >
+                    Pilih File
+                  </label>
+                  <span className="text-sm text-gray-500 truncate max-w-[200px]">
+                    {image ? image.name : 'Tidak ada gambar'}
+                  </span>
+                </div>
+              </div>
+              
+              {imagePreview ? (
+                <div className="relative shrink-0">
+                  <img src={imagePreview} alt="Preview" className="w-32 h-32 object-cover rounded-lg border border-gray-200 shadow-sm" />
+                  <div className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-lg pointer-events-none"></div>
+                </div>
+              ) : (
+                <div className="w-32 h-32 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center shrink-0 text-gray-400">
+                  <ImageIcon className="w-8 h-8 opacity-50" />
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="grid grid-cols-[150px_1fr] items-center gap-4">
-             <label className="font-bold text-gray-900">Upload Gambar</label>
-             <div className="flex items-center gap-4">
-               <input 
-                 type="file" 
-                 id="imageUpload"
-                 className="hidden" 
-                 accept="image/*"
-                 onChange={e => {
-                   if (e.target.files && e.target.files[0]) {
-                     setImage(e.target.files[0]);
-                   }
-                 }}
-               />
-               <input 
-                 type="text" 
-                 readOnly 
-                 value={image ? image.name : ''}
-                 className="border-2 border-gray-800 p-2 focus:outline-none w-64 bg-gray-50"
-               />
-               <label htmlFor="imageUpload" className="border-2 border-gray-800 py-2 px-6 font-bold cursor-pointer hover:bg-gray-100 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-white text-sm">
-                 Browse
-               </label>
-             </div>
-          </div>
-
-          <div className="flex gap-4 mt-6">
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="border-2 border-gray-800 py-2 px-8 font-bold hover:bg-gray-100 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-white disabled:opacity-50"
-            >
-              Simpan
-            </button>
+          <div className="flex justify-end gap-3 mt-4 pt-6 border-t border-gray-100">
             <button 
               type="button" 
               onClick={() => navigate('/admin/kegiatan')}
-              className="border-2 border-gray-800 py-2 px-8 font-bold hover:bg-gray-100 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-white"
+              className="px-6 py-2.5 text-gray-600 font-bold hover:bg-gray-100 rounded-lg transition-colors"
             >
               Batal
+            </button>
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-md shadow-blue-500/20"
+            >
+              {loading ? 'Menyimpan...' : 'Simpan Kegiatan'}
             </button>
           </div>
         </form>

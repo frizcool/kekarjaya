@@ -1,7 +1,12 @@
 import { motion } from 'motion/react';
 import { Shield, Camera, Scale, ChevronRight } from 'lucide-react';
+import { useSettings } from '../hooks/useSettings';
 
 export function Services() {
+  const { settings } = useSettings();
+  const subtitle = settings.services_subtitle || "Lini Bisnis";
+  const title = settings.services_title || "Total Security Solution";
+
   const services = [
     {
       id: "outsourcing",
@@ -30,13 +35,15 @@ export function Services() {
   ];
 
   return (
-    <section id="services" className="py-24 relative bg-gray-50">
+    <section id="services" className="py-24 relative bg-gray-50 border-t border-gray-100">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <h2 className="inline-block px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-[10px] font-bold text-blue-700 uppercase tracking-widest mb-4">Lini Bisnis</h2>
-          <h3 className="text-4xl md:text-5xl font-extrabold uppercase text-gray-900">
-            Total Security <span className="text-blue-700">Solution</span>
+          <h2 className="inline-block px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-[10px] font-bold text-blue-700 uppercase tracking-widest mb-4">{subtitle}</h2>
+          <h3 className="text-4xl md:text-5xl font-extrabold uppercase text-gray-900 leading-tight">
+             {title.split(' ').map((word, i) => (
+                <span key={i} className={i % 2 === 0 ? '' : 'text-blue-700'}>{word} </span>
+              ))}
           </h3>
         </div>
 
@@ -48,10 +55,10 @@ export function Services() {
                 key={svc.id}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                whileHover={{ y: -5 }}
+                whileHover={{ y: -8, scale: 1.02 }}
                 viewport={{ once: true }}
-                transition={{ delay: idx * 0.1, duration: 0.5 }}
-                className={`rounded-2xl p-8 flex flex-col group cursor-pointer overflow-hidden border ${isDark ? 'shadow-xl shadow-blue-700/30' : 'border-gray-200 shadow-lg shadow-gray-100/50'} relative ${svc.className}`}
+                transition={{ delay: idx * 0.1, duration: 0.3 }}
+                className={`rounded-2xl p-8 flex flex-col group cursor-pointer overflow-hidden border transition-shadow hover:shadow-2xl ${isDark ? 'shadow-xl shadow-blue-700/30' : 'border-gray-200 shadow-lg shadow-gray-100/50'} relative ${svc.className}`}
               >
                 
                 <div className="relative z-10 flex-1 flex flex-col">

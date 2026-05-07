@@ -12,6 +12,11 @@ import { AdminLogin } from './pages/admin/Login';
 import { AdminActivities } from './pages/admin/Activities';
 import { AdminAddActivity } from './pages/admin/AddActivity';
 import { AdminEditActivity } from './pages/admin/EditActivity';
+import { AdminDashboard } from './pages/admin/Dashboard';
+import { AdminContacts } from './pages/admin/Contacts';
+import { AdminSettings } from './pages/admin/Settings';
+import { AdminProfile } from './pages/admin/Profile';
+import { AdminLayout } from './layouts/AdminLayout';
 import { ScrollToTop } from './components/ScrollToTop';
 
 function PublicLayout() {
@@ -41,9 +46,15 @@ export default function App() {
         <Routes>
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminLogin />} />
-          <Route path="/admin/kegiatan" element={<AdminActivities />} />
-          <Route path="/admin/kegiatan/tambah" element={<AdminAddActivity />} />
-          <Route path="/admin/kegiatan/ubah/:id" element={<AdminEditActivity />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="kegiatan" element={<AdminActivities />} />
+            <Route path="kegiatan/tambah" element={<AdminAddActivity />} />
+            <Route path="kegiatan/ubah/:id" element={<AdminEditActivity />} />
+            <Route path="kontak" element={<AdminContacts />} />
+            <Route path="pengaturan" element={<AdminSettings />} />
+            <Route path="profil" element={<AdminProfile />} />
+          </Route>
 
           {/* Public Routes */}
           <Route path="/" element={<PublicLayout />}>

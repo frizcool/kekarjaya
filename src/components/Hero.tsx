@@ -1,7 +1,15 @@
 import { motion } from 'motion/react';
 import { ShieldCheck, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { useSettings } from '../hooks/useSettings';
 
 export function Hero() {
+  const { settings } = useSettings();
+  
+  const title = settings.hero_title || "Standar Baru Pengamanan Modern.";
+  const subtitle = settings.hero_subtitle || "Keamanan adalah Prioritas Kami";
+  const desc = settings.hero_desc || "Kami mendedikasikan diri untuk merancang, mengimplementasikan, dan mengelola solusi keamanan fisik terpadu bagi aset berharga Anda.";
+  const image = settings.hero_image || "https://images.unsplash.com/photo-1541888086053-96b653b6f264?q=80&w=1200&auto=format&fit=crop";
+
   return (
     <section id="home" className="relative min-h-[90vh] flex items-center pt-24 overflow-hidden bg-white">
       {/* Background Graphic */}
@@ -21,39 +29,40 @@ export function Hero() {
             >
               <ShieldCheck className="w-4 h-4" />
             </motion.div>
-            <span>Penyedia Keamanan Profesional</span>
+            <span>{subtitle}</span>
           </motion.div>
 
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-5xl lg:text-7xl font-extrabold uppercase leading-[1.1] text-gray-900 tracking-tight"
+            className="text-5xl lg:text-7xl font-extrabold uppercase leading-[1.1] text-gray-900 tracking-tight whitespace-pre-wrap"
           >
-            Standar Baru <br/>
-            <span className="text-blue-700">Pengamanan</span><br/>
-            Modern.
+            {title}
           </motion.h1>
 
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-6 max-w-lg text-lg text-gray-600 leading-relaxed font-medium"
+            className="mt-6 max-w-lg text-lg text-gray-600 leading-relaxed font-medium whitespace-pre-wrap"
           >
-            Kami mendedikasikan diri untuk merancang, mengimplementasikan, dan mengelola solusi keamanan fisik terpadu bagi aset berharga Anda.
+            {desc}
           </motion.p>
           
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col sm:flex-row gap-4 mt-8 w-full"
+            className="flex flex-col sm:flex-row flex-wrap gap-4 mt-8 w-full"
           >
             <a href="#services" className="flex items-center justify-center gap-2 px-8 py-4 bg-blue-700 text-white font-bold rounded-md shadow-xl shadow-blue-700/20 hover:bg-blue-800 transition-colors uppercase tracking-wider text-sm">
               Layanan Kami <ChevronRight className="w-5 h-5" />
             </a>
-            <a href="#contact" className="flex items-center justify-center gap-2 px-8 py-4 bg-white border-2 border-gray-200 text-gray-800 font-bold rounded-md hover:border-blue-700 hover:text-blue-700 transition-colors uppercase tracking-wider text-sm">
+            <a href="#about" className="flex items-center justify-center gap-2 px-8 py-4 border-2 border-blue-700 text-blue-700 font-bold rounded-md hover:bg-blue-50 transition-colors uppercase tracking-wider text-sm">
+              Tentang Kami
+            </a>
+            <a href="#contact" className="flex items-center justify-center gap-2 px-8 py-4 bg-white border-2 border-gray-200 text-gray-800 font-bold rounded-md hover:border-gray-300 hover:text-gray-900 transition-colors uppercase tracking-wider text-sm">
               Hubungi Kami
             </a>
           </motion.div>
@@ -80,7 +89,7 @@ export function Hero() {
           <div className="relative rounded-2xl overflow-hidden shadow-2xl">
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent z-10" />
             <img 
-              src="https://images.unsplash.com/photo-1541888086053-96b653b6f264?q=80&w=1200&auto=format&fit=crop" 
+              src={image} 
               alt="Security Professional" 
               className="w-full h-auto object-cover rounded-2xl"
             />
