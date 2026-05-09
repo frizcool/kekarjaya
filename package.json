@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "start": "tsx server.ts",
-    "build": "vite build",
+    "start": "node dist/server.cjs",
+    "build": "vite build && esbuild server.ts --platform=node --target=node18 --bundle --outfile=dist/server.cjs --external:express --external:mysql2 --external:multer --external:better-sqlite3 --external:vite --format=cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit"
@@ -36,6 +36,7 @@
     "@types/multer": "^2.1.0",
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.4.21",
+    "esbuild": "^0.28.0",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
