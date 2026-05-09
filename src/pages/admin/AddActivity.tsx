@@ -16,7 +16,7 @@ export function AdminAddActivity() {
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
     if (!token) {
-      navigate('/admin');
+      navigate('/kekarjaya-admin-panel');
     }
   }, [navigate]);
 
@@ -92,7 +92,7 @@ export function AdminAddActivity() {
       });
 
       if (res.ok) {
-        navigate('/admin/kegiatan');
+        navigate('/kekarjaya-admin-panel/kegiatan');
       } else {
         setErrors({ submit: 'Gagal menyimpan kegiatan' });
       }
@@ -107,7 +107,7 @@ export function AdminAddActivity() {
     <div className="flex flex-col gap-6 max-w-4xl">
       <div className="flex items-center gap-4">
         <button 
-          onClick={() => navigate('/admin/kegiatan')}
+          onClick={() => navigate('/kekarjaya-admin-panel/kegiatan')}
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
         >
           <ArrowLeft className="w-5 h-5 text-gray-500" />
@@ -218,7 +218,7 @@ export function AdminAddActivity() {
           <div className="flex justify-end gap-3 mt-4 pt-6 border-t border-gray-100">
             <button 
               type="button" 
-              onClick={() => navigate('/admin/kegiatan')}
+              onClick={() => navigate('/kekarjaya-admin-panel/kegiatan')}
               className="px-6 py-2.5 text-gray-600 font-bold hover:bg-gray-100 rounded-lg transition-colors"
             >
               Batal

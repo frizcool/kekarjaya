@@ -26,7 +26,7 @@ export function AdminLogin() {
       const data = await res.json();
       if (res.ok) {
         localStorage.setItem('adminToken', data.token);
-        navigate('/admin/kegiatan');
+        navigate('/kekarjaya-admin-panel/kegiatan');
       } else {
         setError(data.error || 'Autentikasi gagal. Periksa username dan password.');
         setIsLoading(false);

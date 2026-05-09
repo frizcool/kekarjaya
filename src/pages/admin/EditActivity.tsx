@@ -30,7 +30,7 @@ export function AdminEditActivity() {
       })
       .catch(err => {
         console.error(err);
-        navigate('/admin/kegiatan');
+        navigate('/kekarjaya-admin-panel/kegiatan');
       });
   }, [id, navigate]);
 
@@ -103,7 +103,7 @@ export function AdminEditActivity() {
       });
 
       if (res.ok) {
-        navigate('/admin/kegiatan');
+        navigate('/kekarjaya-admin-panel/kegiatan');
       } else {
         setErrors({ submit: 'Gagal menyimpan perubahan' });
       }
@@ -119,7 +119,7 @@ export function AdminEditActivity() {
     <div className="flex flex-col gap-6 max-w-4xl">
       <div className="flex items-center gap-4">
         <button 
-          onClick={() => navigate('/admin/kegiatan')}
+          onClick={() => navigate('/kekarjaya-admin-panel/kegiatan')}
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
         >
           <ArrowLeft className="w-5 h-5 text-gray-500" />
@@ -236,7 +236,7 @@ export function AdminEditActivity() {
           <div className="flex justify-end gap-3 mt-4 pt-6 border-t border-gray-100">
             <button 
               type="button" 
-              onClick={() => navigate('/admin/kegiatan')}
+              onClick={() => navigate('/kekarjaya-admin-panel/kegiatan')}
               className="px-6 py-2.5 text-gray-600 font-bold hover:bg-gray-100 rounded-lg transition-colors"
             >
               Batal

@@ -29,7 +29,7 @@ export function AdminActivities() {
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
     if (!token) {
-      navigate('/admin');
+      navigate('/kekarjaya-admin-panel');
       return;
     }
     fetchActivities();
@@ -107,7 +107,7 @@ export function AdminActivities() {
         <h1 className="text-2xl font-bold text-gray-900">Kelola Kegiatan</h1>
         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
           <Link 
-            to="/admin/kegiatan/tambah" 
+            to="/kekarjaya-admin-panel/kegiatan/tambah" 
             className="flex items-center gap-2 bg-blue-600 text-white py-2 px-6 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/30"
           >
             <Plus className="w-5 h-5" />
@@ -198,7 +198,7 @@ export function AdminActivities() {
                 
                 <div className="flex items-center gap-3 mt-auto">
                   <Link 
-                    to={`/admin/kegiatan/ubah/${activity.id}`}
+                    to={`/kekarjaya-admin-panel/kegiatan/ubah/${activity.id}`}
                     className="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-50 hover:border-gray-300 transition-colors"
                   >
                     Ubah

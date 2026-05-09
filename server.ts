@@ -1,6 +1,6 @@
 import express from "express";
 import { createServer as createViteServer } from "vite";
-import Database from "better-sqlite3";
+import mysql from "mysql2/promise";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -24,85 +24,111 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-function setupDatabase() {
-  const db = new Database(path.join(process.cwd(), "database.sqlite"));
+let db: mysql.Pool;
 
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS activities (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      date TEXT NOT NULL,
-      title TEXT NOT NULL,
-      location TEXT NOT NULL,
-      content TEXT NOT NULL,
-      image_url TEXT,
-      likes_count INTEGER DEFAULT 0,
-      shares_count INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
+async function setupDatabase() {
+  const host = process.env.DB_HOST;
+  const user = process.env.DB_USER;
+  const password = process.env.DB_PASSWORD;
+  const database = process.env.DB_NAME;
+  const port = parseInt(process.env.DB_PORT || "3306");
 
-  // Simple migration to add columns if they don't exist
-  try {
-    db.prepare("ALTER TABLE activities ADD COLUMN likes_count INTEGER DEFAULT 0").run();
-  } catch (e) {
-    // Column might already exist
-  }
-  try {
-    db.prepare("ALTER TABLE activities ADD COLUMN shares_count INTEGER DEFAULT 0").run();
-  } catch (e) {
-    // Column might already exist
+  if (!host || !user || !database) {
+    console.warn("MySQL configuration missing from environment variables. Waiting for user to configure.");
+    // We create a dummy pool that will fail nicely if queried, or we can just initialize normally and let it fail.
+    // However, if the user hasn't configured it, we still want the server to start but endpoints to fail,
+    // or we can retry connection.
   }
 
-  // Clients Table
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS clients (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      description TEXT,
-      image_url TEXT,
-      order_index INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
+  db = mysql.createPool({
+    host: host || 'localhost',
+    user: user || 'root',
+    password: password || '',
+    database: database || 'kekarjaya',
+    port: port,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+  });
 
-  // Settings Table
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS settings (
-      key TEXT PRIMARY KEY,
-      value TEXT NOT NULL
-    );
-  `);
-
-  // Contacts Table
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS contacts (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL,
-      message TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
   try {
-    db.prepare("ALTER TABLE contacts ADD COLUMN ip TEXT").run();
-  } catch (e) {
-    // Column might already exist
+    const connection = await db.getConnection();
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS activities (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        date VARCHAR(255) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        location VARCHAR(255) NOT NULL,
+        content TEXT NOT NULL,
+        image_url VARCHAR(255),
+        likes_count INT DEFAULT 0,
+        shares_count INT DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS clients (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        image_url VARCHAR(255),
+        order_index INT DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS settings (
+        setting_key VARCHAR(255) PRIMARY KEY,
+        setting_value TEXT NOT NULL
+      );
+    `);
+
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS contacts (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        message TEXT NOT NULL,
+        ip VARCHAR(255),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS ip_blocks (
+        ip VARCHAR(255) PRIMARY KEY,
+        attempts INT DEFAULT 0,
+        blocked_until DATETIME
+      );
+    `);
+
+    // Insert dummy data if table is empty
+    const [actRows] = await connection.query("SELECT COUNT(*) as count FROM activities");
+    if ((actRows as any)[0].count === 0) {
+      await connection.query(`
+        INSERT INTO activities (date, title, location, content, image_url) VALUES 
+        ('2026-05-01', 'Pelatihan Security Guard', 'Jakarta', 'Pelatihan intensif untuk meningkatkan kesiapsiagaan.', 'https://images.unsplash.com/photo-1541888086053-96b653b6f264'),
+        ('2026-05-05', 'Implementasi Sistem CCTV', 'Bandung', 'Pemasangan sistem keamanan terpadu di area pabrik.', 'https://images.unsplash.com/photo-1557597775-5da74fb2fb0d')
+      `);
+    }
+
+    // Insert user settings
+    await connection.query(`
+      INSERT IGNORE INTO settings (setting_key, setting_value) VALUES 
+      ('admin_password', 'admin123')
+    `);
+
+    connection.release();
+    console.log("Database initialized successfully");
+  } catch (err: any) {
+    console.error("Failed to initialize database:", err.message);
   }
-
-  // IP Blocks Table for Rate Limiting
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS ip_blocks (
-      ip TEXT PRIMARY KEY,
-      attempts INTEGER DEFAULT 0,
-      blocked_until DATETIME
-    );
-  `);
-
-  return db;
 }
 
 // Simple authentication middleware using a token
-const ADMIN_TOKEN = "kekarjaya-admin-token";
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "kekarjaya-admin-token";
 const adminAuth = (req: express.Request, res: express.Response, next: express.NextFunction) => {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader === `Bearer ${ADMIN_TOKEN}`) {
@@ -119,19 +145,20 @@ async function startServer() {
   app.use(express.json());
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
-  const db = setupDatabase();
+  await setupDatabase();
 
   // API Routes
   
   // Login
-  app.post("/api/login", (req, res) => {
+  app.post("/api/login", async (req, res) => {
     const { username, password } = req.body;
-    // Hardcoded credentials for simplicity as requested by standard prototypes
     let storedPassword = "admin123";
     try {
-      const pwRow = db.prepare("SELECT value FROM settings WHERE key = 'admin_password'").get();
-      if (pwRow && (pwRow as any).value) {
-        storedPassword = (pwRow as any).value;
+      if (db) {
+        const [rows] = await db.query("SELECT setting_value FROM settings WHERE setting_key = 'admin_password'");
+        if ((rows as any[]).length > 0) {
+          storedPassword = (rows as any)[0].setting_value;
+        }
       }
     } catch (e) {
       // ignore
@@ -145,21 +172,21 @@ async function startServer() {
   });
 
   // Change Admin Password
-  app.put("/api/admin/password", adminAuth, (req, res) => {
+  app.put("/api/admin/password", adminAuth, async (req, res) => {
     try {
       const { oldPassword, newPassword } = req.body;
       
       let storedPassword = "admin123";
-      const pwRow = db.prepare("SELECT value FROM settings WHERE key = 'admin_password'").get();
-      if (pwRow && (pwRow as any).value) {
-        storedPassword = (pwRow as any).value;
+      const [pwRow] = await db.query("SELECT setting_value FROM settings WHERE setting_key = 'admin_password'");
+      if ((pwRow as any[]).length > 0) {
+        storedPassword = (pwRow as any)[0].setting_value;
       }
 
       if (oldPassword !== storedPassword) {
         return res.status(400).json({ error: "Password lama tidak sesuai" });
       }
 
-      db.prepare("INSERT INTO settings (key, value) VALUES ('admin_password', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(newPassword);
+      await db.query("INSERT INTO settings (setting_key, setting_value) VALUES ('admin_password', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)", [newPassword]);
       res.json({ message: "Password updated successfully" });
     } catch (error) {
       res.status(500).json({ error: "Failed to update password" });
@@ -167,11 +194,11 @@ async function startServer() {
   });
 
   // Get all settings
-  app.get("/api/settings", (req, res) => {
+  app.get("/api/settings", async (req, res) => {
     try {
-      const rows = db.prepare("SELECT * FROM settings").all();
+      const [rows] = await db.query("SELECT * FROM settings");
       const settings = (rows as any[]).reduce((acc: any, row: any) => {
-        acc[row.key] = row.value;
+        acc[row.setting_key] = row.setting_value;
         return acc;
       }, {});
       res.json(settings);
@@ -181,16 +208,12 @@ async function startServer() {
   });
 
   // Update settings
-  app.put("/api/settings", adminAuth, (req, res) => {
+  app.put("/api/settings", adminAuth, async (req, res) => {
     try {
       const settings = req.body;
-      const stmt = db.prepare("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value");
-      const insertMany = db.transaction((settings: Record<string, string>) => {
-        for (const [key, value] of Object.entries(settings)) {
-          stmt.run(key, String(value));
-        }
-      });
-      insertMany(settings);
+      for (const [key, value] of Object.entries(settings)) {
+        await db.query("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)", [key, String(value)]);
+      }
       res.json({ message: "Settings updated successfully" });
     } catch (error) {
       res.status(500).json({ error: "Failed to update settings" });
@@ -198,9 +221,9 @@ async function startServer() {
   });
 
   // Get all contacts
-  app.get("/api/contacts", adminAuth, (req, res) => {
+  app.get("/api/contacts", adminAuth, async (req, res) => {
     try {
-      const contacts = db.prepare("SELECT * FROM contacts ORDER BY created_at DESC").all();
+      const [contacts] = await db.query("SELECT * FROM contacts ORDER BY created_at DESC");
       res.json(contacts);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch contacts" });
@@ -208,18 +231,19 @@ async function startServer() {
   });
 
   // Submit contact
-  app.post("/api/contacts", (req, res) => {
+  app.post("/api/contacts", async (req, res) => {
     try {
-      const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.socket.remoteAddress || 'unknown';
+      const clientIp = String((req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.socket.remoteAddress || 'unknown');
 
       // Check if blocked
-      const blockRow = db.prepare("SELECT * FROM ip_blocks WHERE ip = ?").get(String(clientIp)) as any;
+      const [blockRows] = await db.query("SELECT * FROM ip_blocks WHERE ip = ?", [clientIp]);
+      const blockRow = (blockRows as any[])[0];
       if (blockRow && blockRow.attempts >= 5) {
         if (new Date(blockRow.blocked_until) > new Date()) {
           return res.status(403).json({ error: "Terlalu banyak percobaan. IP Anda diblokir sementara." });
         } else {
           // unblock if time passed
-          db.prepare("UPDATE ip_blocks SET attempts = 0 WHERE ip = ?").run(String(clientIp));
+          await db.query("UPDATE ip_blocks SET attempts = 0 WHERE ip = ?", [clientIp]);
         }
       }
 
@@ -233,18 +257,19 @@ async function startServer() {
       const parsedExp = parseInt(captchaExpected);
 
       if (isNaN(parsedAns) || isNaN(parsedExp) || parsedAns !== parsedExp) {
-         const blockTime = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-         db.prepare("INSERT INTO ip_blocks (ip, attempts, blocked_until) VALUES (?, 1, ?) ON CONFLICT(ip) DO UPDATE SET attempts = attempts + 1, blocked_until = ?").run(String(clientIp), blockTime, blockTime);
+         const blockTime = new Date(Date.now() + 15 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+         await db.query("INSERT INTO ip_blocks (ip, attempts, blocked_until) VALUES (?, 1, ?) ON DUPLICATE KEY UPDATE attempts = attempts + 1, blocked_until = ?", [clientIp, blockTime, blockTime]);
          return res.status(400).json({ error: "Captcha salah!" });
       }
 
       const sanitize = (str: string) => str.replace(/</g, "&lt;").replace(/>/g, "&gt;").trim();
 
-      db.prepare("INSERT INTO contacts (name, email, message, ip) VALUES (?, ?, ?, ?)").run(sanitize(name), sanitize(email), sanitize(message), String(clientIp));
-      db.prepare("DELETE FROM ip_blocks WHERE ip = ?").run(String(clientIp));
+      await db.query("INSERT INTO contacts (name, email, message, ip) VALUES (?, ?, ?, ?)", [sanitize(name), sanitize(email), sanitize(message), clientIp]);
+      await db.query("DELETE FROM ip_blocks WHERE ip = ?", [clientIp]);
       
       res.status(201).json({ message: "Contact submitted" });
     } catch (error) {
+      console.error(error);
       res.status(500).json({ error: "Gagal mengirim pesan" });
     }
   });
@@ -259,9 +284,9 @@ async function startServer() {
   });
 
   // Get all activities
-  app.get("/api/activities", (req, res) => {
+  app.get("/api/activities", async (req, res) => {
     try {
-      const activities = db.prepare("SELECT * FROM activities ORDER BY created_at DESC").all();
+      const [activities] = await db.query("SELECT * FROM activities ORDER BY created_at DESC");
       res.json(activities);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch activities" });
@@ -269,24 +294,25 @@ async function startServer() {
   });
 
   // Add an activity
-  app.post("/api/activities", adminAuth, (req, res) => {
+  app.post("/api/activities", adminAuth, async (req, res) => {
     const { date, title, location, content, imageUrl } = req.body;
     try {
-      const stmt = db.prepare(
-        "INSERT INTO activities (date, title, location, content, image_url) VALUES (?, ?, ?, ?, ?)"
+      const [result] = await db.query(
+        "INSERT INTO activities (date, title, location, content, image_url) VALUES (?, ?, ?, ?, ?)",
+        [date, title, location, content, imageUrl]
       );
-      const result = stmt.run(date, title, location, content, imageUrl);
-      res.json({ id: result.lastInsertRowid });
+      res.json({ id: (result as any).insertId });
     } catch (error) {
       res.status(500).json({ error: "Failed to add activity" });
     }
   });
 
   // Get single activity
-  app.get("/api/activities/:id", (req, res) => {
+  app.get("/api/activities/:id", async (req, res) => {
     const { id } = req.params;
     try {
-      const activity = db.prepare("SELECT * FROM activities WHERE id = ?").get(id);
+      const [rows] = await db.query("SELECT * FROM activities WHERE id = ?", [id]);
+      const activity = (rows as any[])[0];
       if (activity) {
         res.json(activity);
       } else {
@@ -298,14 +324,14 @@ async function startServer() {
   });
 
   // Edit an activity
-  app.put("/api/activities/:id", adminAuth, (req, res) => {
+  app.put("/api/activities/:id", adminAuth, async (req, res) => {
     const { id } = req.params;
     const { date, title, location, content, imageUrl } = req.body;
     try {
-      const stmt = db.prepare(
-        "UPDATE activities SET date = ?, title = ?, location = ?, content = ?, image_url = ? WHERE id = ?"
+      await db.query(
+        "UPDATE activities SET date = ?, title = ?, location = ?, content = ?, image_url = ? WHERE id = ?",
+        [date, title, location, content, imageUrl, id]
       );
-      stmt.run(date, title, location, content, imageUrl, id);
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to update activity" });
@@ -313,13 +339,14 @@ async function startServer() {
   });
 
   // Like an activity
-  app.put("/api/activities/:id/like", (req, res) => {
+  app.put("/api/activities/:id/like", async (req, res) => {
     const { id } = req.params;
     try {
-      db.prepare("UPDATE activities SET likes_count = likes_count + 1 WHERE id = ?").run(id);
-      const activity = db.prepare("SELECT likes_count FROM activities WHERE id = ?").get(id);
+      await db.query("UPDATE activities SET likes_count = likes_count + 1 WHERE id = ?", [id]);
+      const [rows] = await db.query("SELECT likes_count FROM activities WHERE id = ?", [id]);
+      const activity = (rows as any[])[0];
       if (activity) {
-        res.json({ likes: (activity as any).likes_count });
+        res.json({ likes: activity.likes_count });
       } else {
         res.status(404).json({ error: "Activity not found" });
       }
@@ -329,13 +356,14 @@ async function startServer() {
   });
 
   // Share an activity
-  app.put("/api/activities/:id/share", (req, res) => {
+  app.put("/api/activities/:id/share", async (req, res) => {
     const { id } = req.params;
     try {
-      db.prepare("UPDATE activities SET shares_count = shares_count + 1 WHERE id = ?").run(id);
-      const activity = db.prepare("SELECT shares_count FROM activities WHERE id = ?").get(id);
+      await db.query("UPDATE activities SET shares_count = shares_count + 1 WHERE id = ?", [id]);
+      const [rows] = await db.query("SELECT shares_count FROM activities WHERE id = ?", [id]);
+      const activity = (rows as any[])[0];
       if (activity) {
-        res.json({ shares: (activity as any).shares_count });
+        res.json({ shares: activity.shares_count });
       } else {
         res.status(404).json({ error: "Activity not found" });
       }
@@ -345,10 +373,10 @@ async function startServer() {
   });
 
   // Delete an activity
-  app.delete("/api/activities/:id", adminAuth, (req, res) => {
+  app.delete("/api/activities/:id", adminAuth, async (req, res) => {
     const { id } = req.params;
     try {
-      db.prepare("DELETE FROM activities WHERE id = ?").run(id);
+      await db.query("DELETE FROM activities WHERE id = ?", [id]);
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete activity" });
@@ -358,9 +386,9 @@ async function startServer() {
   // --- CLIENTS API ---
 
   // Get all clients
-  app.get("/api/clients", (req, res) => {
+  app.get("/api/clients", async (req, res) => {
     try {
-      const clients = db.prepare("SELECT * FROM clients ORDER BY order_index ASC, created_at DESC").all();
+      const [clients] = await db.query("SELECT * FROM clients ORDER BY order_index ASC, created_at DESC");
       res.json(clients);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch clients" });
@@ -368,27 +396,27 @@ async function startServer() {
   });
 
   // Create client
-  app.post("/api/clients", adminAuth, (req, res) => {
+  app.post("/api/clients", adminAuth, async (req, res) => {
     try {
       const { name, description, image_url, order_index } = req.body;
       if (!name) {
         return res.status(400).json({ error: "Name is required" });
       }
-      const info = db.prepare("INSERT INTO clients (name, description, image_url, order_index) VALUES (?, ?, ?, ?)").run(
-        name, description || null, image_url || null, order_index || 0
+      const [info] = await db.query("INSERT INTO clients (name, description, image_url, order_index) VALUES (?, ?, ?, ?)",
+        [name, description || null, image_url || null, order_index || 0]
       );
-      res.status(201).json({ id: info.lastInsertRowid, message: "Client created" });
+      res.status(201).json({ id: (info as any).insertId, message: "Client created" });
     } catch (error) {
       res.status(500).json({ error: "Failed to create client" });
     }
   });
 
   // Update client
-  app.put("/api/clients/:id", adminAuth, (req, res) => {
+  app.put("/api/clients/:id", adminAuth, async (req, res) => {
     try {
       const { name, description, image_url, order_index } = req.body;
-      db.prepare("UPDATE clients SET name = ?, description = ?, image_url = ?, order_index = ? WHERE id = ?").run(
-        name, description || null, image_url || null, order_index || 0, req.params.id
+      await db.query("UPDATE clients SET name = ?, description = ?, image_url = ?, order_index = ? WHERE id = ?",
+        [name, description || null, image_url || null, order_index || 0, req.params.id]
       );
       res.json({ message: "Client updated" });
     } catch (error) {
@@ -397,9 +425,9 @@ async function startServer() {
   });
 
   // Delete client
-  app.delete("/api/clients/:id", adminAuth, (req, res) => {
+  app.delete("/api/clients/:id", adminAuth, async (req, res) => {
     try {
-      db.prepare("DELETE FROM clients WHERE id = ?").run(req.params.id);
+      await db.query("DELETE FROM clients WHERE id = ?", [req.params.id]);
       res.json({ message: "Client deleted" });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete client" });
@@ -428,3 +456,4 @@ async function startServer() {
 }
 
 startServer();
+

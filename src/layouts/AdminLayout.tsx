@@ -31,16 +31,16 @@ export function AdminLayout() {
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
     setShowLogoutConfirm(false);
-    navigate('/admin');
+    navigate('/kekarjaya-admin-panel');
   };
 
   const navItems = [
-    { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-    { name: 'Kegiatan', path: '/admin/kegiatan', icon: FileText },
-    { name: 'Klien Kami', path: '/admin/klien', icon: Users },
-    { name: 'Pesan Masuk', path: '/admin/kontak', icon: MessageSquare },
-    { name: 'Pengaturan', path: '/admin/pengaturan', icon: Settings },
-    { name: 'Profil', path: '/admin/profil', icon: Users },
+    { name: 'Dashboard', path: '/kekarjaya-admin-panel/dashboard', icon: LayoutDashboard },
+    { name: 'Kegiatan', path: '/kekarjaya-admin-panel/kegiatan', icon: FileText },
+    { name: 'Klien Kami', path: '/kekarjaya-admin-panel/klien', icon: Users },
+    { name: 'Pesan Masuk', path: '/kekarjaya-admin-panel/kontak', icon: MessageSquare },
+    { name: 'Pengaturan', path: '/kekarjaya-admin-panel/pengaturan', icon: Settings },
+    { name: 'Profil', path: '/kekarjaya-admin-panel/profil', icon: Users },
   ];
 
   return (
