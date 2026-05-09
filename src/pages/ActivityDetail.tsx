@@ -28,7 +28,10 @@ export function ActivityDetail() {
     window.scrollTo(0, 0); // Reset scroll position when loading a new detail
     
     fetch('/api/activities')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Network response was not ok');
+        return res.json();
+      })
       .then((data: Activity[]) => {
         const found = data.find(item => item.id.toString() === id);
         if (found) {

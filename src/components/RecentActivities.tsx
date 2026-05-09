@@ -19,9 +19,14 @@ export function RecentActivities() {
 
   useEffect(() => {
     fetch('/api/activities')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Network error');
+        return res.json();
+      })
       .then(data => {
-        setActivities(data.slice(0, 3)); // Get top 3
+        if (Array.isArray(data)) {
+          setActivities(data.slice(0, 3)); // Get top 3
+        }
         setLoading(false);
       })
       .catch(err => {

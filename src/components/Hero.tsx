@@ -1,9 +1,18 @@
-import { motion } from 'motion/react';
+import { motion, useScroll, useTransform } from 'motion/react';
 import { ShieldCheck, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { useSettings } from '../hooks/useSettings';
+import { useRef } from 'react';
 
 export function Hero() {
   const { settings } = useSettings();
+  const ref = useRef<HTMLDivElement>(null);
+  
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start start", "end start"]
+  });
+
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
   
   const title = settings.hero_title || "Standar Baru Pengamanan Modern.";
   const subtitle = settings.hero_subtitle || "Keamanan adalah Prioritas Kami";
@@ -11,7 +20,7 @@ export function Hero() {
   const image = settings.hero_image || "https://images.unsplash.com/photo-1541888086053-96b653b6f264?q=80&w=1200&auto=format&fit=crop";
 
   return (
-    <section id="home" className="relative min-h-[90vh] flex items-center pt-24 overflow-hidden">
+    <section id="home" ref={ref} className="relative min-h-[90vh] flex items-center pt-24 overflow-hidden">
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 w-full flex flex-col lg:flex-row items-center gap-12">
         <div className="flex-1 text-left flex flex-col items-start pt-10 lg:pt-0">
           <motion.div
@@ -83,12 +92,13 @@ export function Hero() {
           className="flex-1 relative w-full max-w-lg lg:max-w-none"
         >
           {/* Security Guard Image / Modern office */}
-          <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl h-[500px]">
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent z-10" />
-            <img 
+            <motion.img 
               src={image} 
               alt="Security Professional" 
-              className="w-full h-auto object-cover rounded-2xl"
+              style={{ y }}
+              className="absolute top-[-10%] left-0 w-full h-[120%] object-cover"
             />
             {/* Overlay stats */}
             <div className="absolute bottom-6 left-6 z-20 bg-white/95 backdrop-blur shadow-lg rounded-xl p-4 flex items-center gap-4">

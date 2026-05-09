@@ -6,7 +6,10 @@ export function useSettings() {
 
   useEffect(() => {
     fetch('/api/settings')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to load settings');
+        return res.json();
+      })
       .then(data => {
         setSettings(data);
         setLoading(false);

@@ -14,7 +14,10 @@ export function Clients() {
 
   useEffect(() => {
     fetch('/api/clients')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        return res.json();
+      })
       .then(data => {
         if (Array.isArray(data)) {
           setClients(data);
