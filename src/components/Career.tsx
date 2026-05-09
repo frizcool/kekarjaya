@@ -10,7 +10,7 @@ export function Career() {
   const image = settings.career_image || "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&q=80&w=1200";
 
   return (
-    <section id="career" className="py-24 relative bg-white border-t border-gray-100">
+    <section id="career" className="py-24 relative border-t border-gray-100/50">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <motion.div 

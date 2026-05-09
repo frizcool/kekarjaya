@@ -11,10 +11,7 @@ export function Hero() {
   const image = settings.hero_image || "https://images.unsplash.com/photo-1541888086053-96b653b6f264?q=80&w=1200&auto=format&fit=crop";
 
   return (
-    <section id="home" className="relative min-h-[90vh] flex items-center pt-24 overflow-hidden bg-white">
-      {/* Background Graphic */}
-      <div className="absolute top-0 right-0 w-1/2 h-full bg-blue-50/50 -skew-x-12 translate-x-32 z-0 hidden lg:block border-l border-blue-100"></div>
-
+    <section id="home" className="relative min-h-[90vh] flex items-center pt-24 overflow-hidden">
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 w-full flex flex-col lg:flex-row items-center gap-12">
         <div className="flex-1 text-left flex flex-col items-start pt-10 lg:pt-0">
           <motion.div

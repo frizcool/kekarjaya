@@ -10,13 +10,14 @@ export function Navbar() {
     { name: 'Beranda', path: '/' },
     { name: 'Produk & Jasa', path: '/#services' },
     { name: 'Tentang Kami', path: '/#about' },
+    { name: 'Klien Kami', path: '/#clients' },
     { name: 'Hubungi Kami', path: '/#contact' },
     { name: 'Peluang Karir', path: '/#careers' },
     { name: 'Kegiatan', path: '/kegiatan' }
   ];
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-white border-b border-gray-200 shadow-sm">
+    <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-white/50 shadow-sm">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link to="/" className="font-bold text-xl text-blue-600 tracking-tight">KJS</Link>
@@ -52,7 +53,7 @@ export function Navbar() {
       </div>
 
       {menuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100 p-4 absolute top-16 left-0 w-full shadow-lg">
+        <div className="md:hidden bg-white/90 backdrop-blur-md border-t border-gray-100/50 p-4 absolute top-16 left-0 w-full shadow-lg">
           <div className="flex flex-col gap-4 text-center">
             {links.map((link, idx) => (
               <a 

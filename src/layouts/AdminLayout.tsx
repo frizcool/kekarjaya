@@ -35,6 +35,7 @@ export function AdminLayout() {
   const navItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
     { name: 'Kegiatan', path: '/admin/kegiatan', icon: FileText },
+    { name: 'Klien Kami', path: '/admin/klien', icon: Users },
     { name: 'Pesan Masuk', path: '/admin/kontak', icon: MessageSquare },
     { name: 'Pengaturan', path: '/admin/pengaturan', icon: Settings },
     { name: 'Profil', path: '/admin/profil', icon: Users },

@@ -13,17 +13,21 @@ import { AdminActivities } from './pages/admin/Activities';
 import { AdminAddActivity } from './pages/admin/AddActivity';
 import { AdminEditActivity } from './pages/admin/EditActivity';
 import { AdminDashboard } from './pages/admin/Dashboard';
+import { AdminClients } from './pages/admin/Clients';
 import { AdminContacts } from './pages/admin/Contacts';
 import { AdminSettings } from './pages/admin/Settings';
 import { AdminProfile } from './pages/admin/Profile';
 import { AdminLayout } from './layouts/AdminLayout';
 import { ScrollToTop } from './components/ScrollToTop';
 
+import { AnimatedBackground } from './components/AnimatedBackground';
+
 function PublicLayout() {
   return (
     <>
+      <AnimatedBackground />
       <Navbar />
-      <main className="flex-1 w-full bg-white">
+      <main className="flex-1 w-full relative z-10">
         <Outlet />
       </main>
       <ScrollToTop />
@@ -51,6 +55,7 @@ export default function App() {
             <Route path="kegiatan" element={<AdminActivities />} />
             <Route path="kegiatan/tambah" element={<AdminAddActivity />} />
             <Route path="kegiatan/ubah/:id" element={<AdminEditActivity />} />
+            <Route path="klien" element={<AdminClients />} />
             <Route path="kontak" element={<AdminContacts />} />
             <Route path="pengaturan" element={<AdminSettings />} />
             <Route path="profil" element={<AdminProfile />} />

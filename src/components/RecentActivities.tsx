@@ -34,11 +34,11 @@ export function RecentActivities() {
   if (activities.length === 0) return null;
 
   return (
-    <section className="py-24 bg-gray-50">
+    <section className="py-24 relative border-t border-gray-100/50">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-16">
           <div className="max-w-2xl">
-            <h2 className="inline-block px-3 py-1 bg-blue-100 rounded-md text-[10px] font-bold text-blue-700 uppercase tracking-widest mb-4 border border-blue-200">
+            <h2 className="inline-block px-3 py-1 bg-blue-100/80 backdrop-blur-sm rounded-md text-[10px] font-bold text-blue-700 uppercase tracking-widest mb-4 border border-blue-200/50">
               Update Terbaru
             </h2>
             <h3 className="text-4xl md:text-5xl font-extrabold uppercase text-gray-900 tracking-tight">
@@ -61,7 +61,7 @@ export function RecentActivities() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1, duration: 0.5 }}
-              className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex flex-col group hover:shadow-lg transition-shadow"
+              className="bg-white/80 backdrop-blur-md rounded-2xl overflow-hidden shadow-sm border border-white/50 flex flex-col group hover:shadow-lg hover:border-blue-100 transition-all"
             >
               {activity.image_url ? (
                 <div className="h-48 overflow-hidden shrink-0">

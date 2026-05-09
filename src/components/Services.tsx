@@ -13,7 +13,7 @@ export function Services() {
       title: "Penyedia Tenaga Kerja",
       icon: <Shield className="w-12 h-12 mb-6 text-blue-700" />,
       items: ["Security Guards", "Cleaning Service", "Karyawan Ritel", "Petugas Parkir"],
-      className: "md:col-span-2 md:row-span-2 bg-white",
+      className: "md:col-span-2 md:row-span-2 bg-white/80 backdrop-blur-md border-white/50",
       desc: "Menyediakan personil unggul yang dilatih dengan disiplin ketat untuk menjaga kondusifitas lingkungan Anda."
     },
     {
@@ -21,7 +21,7 @@ export function Services() {
       title: "Sistem Keamanan",
       icon: <Camera className="w-10 h-10 mb-4 text-blue-100" />,
       items: ["Sistem CCTV", "Metal Detector", "Access Control"],
-      className: "bg-blue-700 text-white border-transparent",
+      className: "bg-blue-700/90 backdrop-blur-md text-white border-transparent",
       desc: "Instalasi perangkat keamanan teknologi tinggi."
     },
     {
@@ -29,13 +29,13 @@ export function Services() {
       title: "Konsultan Hukum",
       icon: <Scale className="w-10 h-10 mb-4 text-indigo-700" />,
       items: ["Legal Consultant", "Property Rights", "Attorney"],
-      className: "bg-indigo-50 border-indigo-100",
+      className: "bg-indigo-50/80 backdrop-blur-md border-indigo-100/50",
       desc: "Perlindungan hukum untuk aktivitas bisnis Anda."
     }
   ];
 
   return (
-    <section id="services" className="py-24 relative bg-gray-50 border-t border-gray-100">
+    <section id="services" className="py-24 relative border-t border-gray-100/50">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         
         <div className="text-center max-w-2xl mx-auto mb-16">

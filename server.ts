@@ -53,6 +53,18 @@ function setupDatabase() {
     // Column might already exist
   }
 
+  // Clients Table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS clients (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      description TEXT,
+      image_url TEXT,
+      order_index INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
   // Settings Table
   db.exec(`
     CREATE TABLE IF NOT EXISTS settings (
@@ -342,6 +354,58 @@ async function startServer() {
       res.status(500).json({ error: "Failed to delete activity" });
     }
   });
+
+  // --- CLIENTS API ---
+
+  // Get all clients
+  app.get("/api/clients", (req, res) => {
+    try {
+      const clients = db.prepare("SELECT * FROM clients ORDER BY order_index ASC, created_at DESC").all();
+      res.json(clients);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch clients" });
+    }
+  });
+
+  // Create client
+  app.post("/api/clients", adminAuth, (req, res) => {
+    try {
+      const { name, description, image_url, order_index } = req.body;
+      if (!name) {
+        return res.status(400).json({ error: "Name is required" });
+      }
+      const info = db.prepare("INSERT INTO clients (name, description, image_url, order_index) VALUES (?, ?, ?, ?)").run(
+        name, description || null, image_url || null, order_index || 0
+      );
+      res.status(201).json({ id: info.lastInsertRowid, message: "Client created" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create client" });
+    }
+  });
+
+  // Update client
+  app.put("/api/clients/:id", adminAuth, (req, res) => {
+    try {
+      const { name, description, image_url, order_index } = req.body;
+      db.prepare("UPDATE clients SET name = ?, description = ?, image_url = ?, order_index = ? WHERE id = ?").run(
+        name, description || null, image_url || null, order_index || 0, req.params.id
+      );
+      res.json({ message: "Client updated" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update client" });
+    }
+  });
+
+  // Delete client
+  app.delete("/api/clients/:id", adminAuth, (req, res) => {
+    try {
+      db.prepare("DELETE FROM clients WHERE id = ?").run(req.params.id);
+      res.json({ message: "Client deleted" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete client" });
+    }
+  });
+
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {

@@ -21,10 +21,10 @@ export function About() {
   ];
 
   return (
-    <section id="about" className="py-24 relative bg-gray-50">
+    <section id="about" className="py-24 relative">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center mb-16">
-          <h2 className="inline-block px-3 py-1 bg-white border border-gray-200 rounded-full text-[10px] font-bold text-blue-700 uppercase tracking-widest mb-4">{subtitle}</h2>
+          <h2 className="inline-block px-3 py-1 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full text-[10px] font-bold text-blue-700 uppercase tracking-widest mb-4">{subtitle}</h2>
           <h3 className="text-4xl md:text-5xl font-extrabold uppercase leading-tight text-gray-900 mb-6">
             {title.split(' ').map((word, i) => (
               <span key={i} className={i % 2 === 1 ? 'text-blue-700' : ''}>{word} </span>
@@ -43,7 +43,7 @@ export function About() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1, duration: 0.5 }}
-              className="bg-white p-8 rounded-xl border border-gray-100 shadow-xl shadow-gray-200/50 flex flex-col items-center text-center group hover:-translate-y-1 transition-transform"
+              className="bg-white/80 backdrop-blur-md p-8 rounded-xl border border-white/50 shadow-xl shadow-gray-200/50 flex flex-col items-center text-center group hover:-translate-y-1 transition-transform"
             >
               <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                 {stat.icon}

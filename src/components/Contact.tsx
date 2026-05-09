@@ -97,7 +97,7 @@ export function Contact() {
   };
 
   return (
-    <section id="contact" className="py-24 relative bg-gray-50 border-t border-gray-200">
+    <section id="contact" className="py-24 relative border-t border-gray-200/50">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-16">
           
@@ -108,7 +108,7 @@ export function Contact() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="inline-block px-3 py-1 bg-white border border-gray-200 rounded-full text-[10px] font-bold text-blue-700 uppercase tracking-widest mb-4">Informasi Kontak</h2>
+            <h2 className="inline-block px-3 py-1 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full text-[10px] font-bold text-blue-700 uppercase tracking-widest mb-4">Informasi Kontak</h2>
             <h3 className="text-4xl md:text-5xl font-extrabold uppercase mb-6 text-gray-900">
               {contactTitle.split(' ').map((word, i) => (
                 <span key={i} className={i % 2 === 1 ? 'text-blue-700' : ''}>{word} </span>
@@ -121,7 +121,7 @@ export function Contact() {
             
             <div className="space-y-8 mb-12">
               <div className="flex items-start gap-4">
-                <div className="p-4 bg-white rounded-xl shadow-sm border border-gray-100 text-blue-700">
+                <div className="p-4 bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100 text-blue-700">
                   <MapPin className="w-6 h-6" />
                 </div>
                 <div>
@@ -134,7 +134,7 @@ export function Contact() {
               </div>
 
               <div className="flex items-center gap-4">
-                <div className="p-4 bg-white rounded-xl shadow-sm border border-gray-100 text-blue-700">
+                <div className="p-4 bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100 text-blue-700">
                   <Phone className="w-6 h-6" />
                 </div>
                 <div>
@@ -144,7 +144,7 @@ export function Contact() {
               </div>
               
               <div className="flex items-center gap-4">
-                <div className="p-4 bg-white rounded-xl shadow-sm border border-gray-100 text-blue-700">
+                <div className="p-4 bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100 text-blue-700">
                   <Mail className="w-6 h-6" />
                 </div>
                 <div>
@@ -161,7 +161,7 @@ export function Contact() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="bg-white p-8 rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 flex flex-col justify-center"
+            className="bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-xl shadow-gray-200/50 border border-white/50 flex flex-col justify-center"
           >
             <h4 className="text-2xl font-extrabold uppercase mb-8 text-gray-900">
                Tinggalkan Pesan
