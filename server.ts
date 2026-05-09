@@ -1,5 +1,4 @@
 import express from "express";
-import { createServer as createViteServer } from "vite";
 import mysql from "mysql2/promise";
 import multer from "multer";
 import path from "path";
@@ -140,7 +139,6 @@ const adminAuth = (req: express.Request, res: express.Response, next: express.Ne
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
   
   app.use(express.json());
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
@@ -435,23 +433,32 @@ async function startServer() {
   });
 
 
+  let distPath = path.join(process.cwd(), "dist");
+  if (!fs.existsSync(path.join(distPath, "index.html")) && fs.existsSync(path.join(process.cwd(), "index.html"))) {
+    // If cwd is already the dist folder (some hosting providers do this)
+    distPath = process.cwd();
+  }
+
+  const isProd = fs.existsSync(path.join(distPath, "index.html"));
+
   // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
+  if (!isProd) {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
 
+  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
   });
 }
 
