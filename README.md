@@ -1,116 +1,208 @@
-# KEKAR JAYA MODERN
+# 🛡️ KEKAR JAYA SECURITY WEBSITE
 
-**Standar Baru Pengamanan Modern**
-Kami mendedikasikan diri untuk merancang, mengimplementasikan, dan mengelola solusi keamanan fisik terpadu bagi aset berharga Anda.
-
----
-
-# Tentang Kami
-
-KEKAR JAYA MODERN merupakan perusahaan yang bergerak di bidang layanan keamanan modern, penyedia tenaga kerja profesional, serta konsultasi hukum untuk mendukung keamanan dan keberlangsungan operasional bisnis Anda.
-
-Dengan mengedepankan profesionalisme, disiplin, serta dukungan teknologi keamanan modern, kami hadir sebagai mitra terpercaya dalam menjaga keamanan dan kenyamanan lingkungan kerja maupun bisnis Anda.
+<p align="center">
+  <img src="https://img.shields.io/badge/React-TypeScript-blue" />
+  <img src="https://img.shields.io/badge/Vite-Fast%20Build-purple" />
+  <img src="https://img.shields.io/badge/Responsive-Mobile%20Ready-success" />
+  <img src="https://img.shields.io/badge/License-Apache%202.0-orange" />
+</p>
 
 ---
 
-# Layanan Kami
+# 🏢 KEKAR JAYA SECURITY
 
-## Penyedia Tenaga Kerja
+> ### **"Ultimate Assets Protection"**
 
-Menyediakan personil unggul yang dilatih dengan disiplin ketat untuk menjaga kondusifitas lingkungan Anda.
+Semenjak didirikan pada tahun 2006, **KEKAR JAYA SECURITY** telah bekerja sama dengan berbagai client dari beragam sektor usaha dan kebutuhan keamanan dengan mengedepankan profesionalisme, pengalaman, serta hubungan kerja yang harmonis dan terpercaya.
 
-### Personil Profesional
-
-* Security Guards
-* Cleaning Service
-* Karyawan Ritel
-* Petugas Parkir
+Kami sangat selektif dalam memilih tenaga kerja yang kami sediakan, termasuk proses pelatihan dan evaluasi berkala guna memastikan kualitas pelayanan tetap optimal demi menjaga kepercayaan serta kepuasan client.
 
 ---
 
-## Sistem Keamanan
+## 🇮🇩 Deskripsi Website
 
-Instalasi perangkat keamanan berbasis teknologi tinggi untuk meningkatkan perlindungan aset dan lingkungan operasional.
+Website resmi **KEKAR JAYA SECURITY** dibangun menggunakan **React + TypeScript** dengan desain modern, profesional, responsif, dan optimal untuk berbagai perangkat.
 
-### Solusi Keamanan
-
-* Sistem CCTV
-* Metal Detector
-* Access Control
+Website ini berfungsi sebagai media informasi perusahaan, publikasi layanan, profil perusahaan, serta sarana komunikasi digital yang terpercaya dan profesional.
 
 ---
 
-## Konsultan Hukum
+## ✨ Fitur Utama
 
-Perlindungan hukum profesional untuk mendukung aktivitas bisnis dan keamanan perusahaan Anda.
-
-### Layanan Hukum
-
-* Legal Consultant
-* Property Rights
-* Attorney
-
----
-
-# Keunggulan Kami
-
-* Profesional dan terpercaya
-* Personil disiplin dan terlatih
-* Sistem keamanan modern
-* Pelayanan responsif
-* Solusi keamanan terpadu
-* Pendekatan sesuai kebutuhan klien
+* 🛡️ Profil perusahaan
+* 👮 Informasi layanan keamanan
+* 📰 Portal berita & kegiatan perusahaan
+* 📸 Galeri dokumentasi
+* 📞 Informasi kontak & konsultasi
+* 📱 Responsive mobile-first design
+* ⚡ Performa cepat & ringan
+* 🔍 SEO Friendly
+* 🌙 Modern UI/UX
+* 🔐 Sistem manajemen konten (CMS Ready)
 
 ---
 
-# Visi
+## 🛠️ Tech Stack
 
-Menjadi perusahaan pengamanan modern terpercaya yang menghadirkan standar keamanan profesional berbasis teknologi dan sumber daya manusia unggul.
-
----
-
-# Misi
-
-* Memberikan layanan keamanan terbaik dan profesional
-* Mengembangkan personil yang disiplin dan kompeten
-* Mengimplementasikan teknologi keamanan modern
-* Menjaga integritas dan kepercayaan klien
-* Memberikan solusi hukum yang tepat dan terpercaya
+* ⚛️ React
+* 🟦 TypeScript
+* ⚡ Vite
+* 🎨 Tailwind CSS
+* 🧭 React Router
+* 📡 REST API / Headless CMS
+* ☁️ Vercel / Netlify Deployment
 
 ---
 
-# Teknologi & Sistem
+## 📦 Instalasi
 
-Kami mendukung implementasi sistem keamanan modern menggunakan teknologi terkini seperti:
+```bash id="g62x9n"
+# Clone repository
+git clone https://github.com/frizcool/kekarjaya.git
 
-* CCTV Monitoring System
-* Access Control System
-* Visitor Management
-* Patrol Monitoring
-* Alarm Security System
-* Integrated Security Management
+# Masuk ke folder project
+cd kekarjaya
 
----
+# Install dependencies
+npm install
 
-# Kantor Pusat
-
-## PT. Kekar Jaya Security
-
-📍 Jl. Salemba Tengah No.78, RT.4/RW.8, Paseban,
-Kec. Senen, Kota Jakarta Pusat,
-Daerah Khusus Ibukota Jakarta 10440, Indonesia
-
-📞 Telepon: (021) - 31923886
-📧 Email: [info@kekarjaya.co.id](mailto:info@kekarjaya.co.id)
+# Jalankan development server
+npm run dev
+```
 
 ---
 
-# Komitmen Kami
+## 🚀 Build Production
 
-KEKAR JAYA MODERN berkomitmen memberikan rasa aman, perlindungan maksimal, serta solusi profesional yang dapat diandalkan oleh perusahaan, instansi, maupun individu.
+```bash id="2r4wcf"
+npm run build
+```
 
 ---
 
-# License
+## 📁 Struktur Project
 
-© 2026 PT. Kekar Jaya Security. All rights reserved.
+```id="n3e8qj"
+src/
+├── assets/
+├── components/
+├── layouts/
+├── pages/
+├── services/
+├── hooks/
+├── types/
+├── utils/
+└── App.tsx
+```
+
+---
+
+## 🌐 Halaman Website
+
+* Home
+* Tentang Kami
+* Layanan
+* Keunggulan Perusahaan
+* Berita & Artikel
+* Galeri
+* Kontak
+* Karir
+
+---
+
+## 🛡️ Keunggulan Perusahaan
+
+* Profesional dan berpengalaman
+* Seleksi tenaga kerja yang ketat
+* Pelatihan rutin dan terstandarisasi
+* Monitoring performa personel secara berkala
+* Mengutamakan kepuasan client
+* Pendekatan kerja profesional dan kekeluargaan
+
+---
+
+## 📱 Responsive Design
+
+Website dioptimalkan untuk:
+
+* Desktop
+* Tablet
+* Smartphone
+* Progressive Web App (PWA) Ready
+
+---
+
+## 🔐 Keamanan
+
+* Validasi input
+* Sanitasi data
+* Environment variable support
+* Optimized production build
+
+---
+
+## 📊 SEO Optimization
+
+* Meta Tags
+* Open Graph
+* Sitemap
+* Robots.txt
+* Structured Data
+* Fast Loading Performance
+
+---
+
+## 🛣️ Roadmap
+
+* [ ] Admin Dashboard
+* [ ] Sistem Login
+* [ ] Upload berita otomatis
+* [ ] Live Chat Client
+* [ ] Sistem Rekrutmen Online
+* [ ] Multi user role
+* [ ] Push Notification
+
+---
+
+## 👤 Developer
+
+<p align="center">
+  <img src="https://avatars.githubusercontent.com/u/54829413?s=400&u=bd0c50e2e265b96ee727fa0eeaff893d99452382&v=4" width="140" style="border-radius:50%;" />
+</p>
+
+<p align="center">
+  <b>Second Lieutenant Fris Wardani</b><br/>
+  Second Lieutenant Fris Wardani, S.Kom.
+</p>
+
+---
+
+## ⚠️ Disclaimer
+
+Website ini dibuat sebagai media informasi dan publikasi digital perusahaan. Seluruh informasi yang ditampilkan tetap mengikuti kebijakan dan ketentuan perusahaan yang berlaku.
+
+---
+
+## 📄 License
+
+Licensed under the Apache License 2.0.
+
+---
+
+## 📞 Informasi Perusahaan
+
+### Kantor Pusat
+
+KEKAR JAYA SECURITY
+Jl. Salemba Tengah No.78, RT.4/RW.8, Paseban, Kec. Senen, Kota Jakarta Pusat, DKI Jakarta 10440, Indonesia
+
+📞 (021) - 31923886
+📧 [info@kekarjaya.co.id](mailto:info@kekarjaya.co.id)
+
+---
+
+## 🛡️ Motto
+
+> “Professional Security Service with Integrity, Discipline, and Trust.”
+
+---
