@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, FormEvent } from 'react';
+import React, { useState, useEffect, useRef, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Plus, X, Pencil, Trash2, Loader2, Upload, AlertCircle } from 'lucide-react';
 

@@ -3,6 +3,7 @@ import mysql from "mysql2/promise";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import bcrypt from "bcryptjs";
 
 // Ensure uploads directory exists
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -96,6 +97,15 @@ async function setupDatabase() {
     `);
 
     await connection.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        username VARCHAR(255) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await connection.query(`
       CREATE TABLE IF NOT EXISTS ip_blocks (
         ip VARCHAR(255) PRIMARY KEY,
         attempts INT DEFAULT 0,
@@ -113,11 +123,18 @@ async function setupDatabase() {
       `);
     }
 
-    // Insert user settings
-    await connection.query(`
-      INSERT IGNORE INTO settings (setting_key, setting_value) VALUES 
-      ('admin_password', 'admin123')
-    `);
+    // Insert admin user if empty
+    const [userRows] = await connection.query("SELECT COUNT(*) as count FROM users");
+    if ((userRows as any)[0].count === 0) {
+      const hashedPassword = await bcrypt.hash("admin123", 10);
+      await connection.query(
+        "INSERT INTO users (username, password) VALUES (?, ?)",
+        ["admin", hashedPassword]
+      );
+    }
+
+    // Clean up old admin_password from settings if it exists
+    await connection.query("DELETE FROM settings WHERE setting_key = 'admin_password'");
 
     connection.release();
     console.log("Database initialized successfully");
@@ -143,29 +160,29 @@ async function startServer() {
   app.use(express.json());
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
-  await setupDatabase();
+  // Start setup DB asynchronously without blocking
+  setupDatabase().catch(err => console.error("DB Setup Error:", err));
 
   // API Routes
   
   // Login
   app.post("/api/login", async (req, res) => {
     const { username, password } = req.body;
-    let storedPassword = "admin123";
     try {
-      if (db) {
-        const [rows] = await db.query("SELECT setting_value FROM settings WHERE setting_key = 'admin_password'");
-        if ((rows as any[]).length > 0) {
-          storedPassword = (rows as any)[0].setting_value;
+      if (!db) {
+        return res.status(500).json({ error: "Database not initialized yet" });
+      }
+      const [rows] = await db.query("SELECT * FROM users WHERE username = ?", [username]);
+      const users = rows as any[];
+      if (users.length > 0) {
+        const isValid = await bcrypt.compare(password, users[0].password);
+        if (isValid) {
+          return res.json({ token: ADMIN_TOKEN });
         }
       }
-    } catch (e) {
-      // ignore
-    }
-
-    if (username === "admin" && password === storedPassword) {
-      res.json({ token: ADMIN_TOKEN });
-    } else {
       res.status(401).json({ error: "Invalid credentials" });
+    } catch (error) {
+      res.status(500).json({ error: "Login failed" });
     }
   });
 
@@ -173,18 +190,21 @@ async function startServer() {
   app.put("/api/admin/password", adminAuth, async (req, res) => {
     try {
       const { oldPassword, newPassword } = req.body;
+      const username = "admin"; // Currently hardcoded to admin user
       
-      let storedPassword = "admin123";
-      const [pwRow] = await db.query("SELECT setting_value FROM settings WHERE setting_key = 'admin_password'");
-      if ((pwRow as any[]).length > 0) {
-        storedPassword = (pwRow as any)[0].setting_value;
+      const [rows] = await db.query("SELECT * FROM users WHERE username = ?", [username]);
+      const users = rows as any[];
+      if (users.length === 0) {
+        return res.status(404).json({ error: "User not found" });
       }
 
-      if (oldPassword !== storedPassword) {
+      const isValid = await bcrypt.compare(oldPassword, users[0].password);
+      if (!isValid) {
         return res.status(400).json({ error: "Password lama tidak sesuai" });
       }
 
-      await db.query("INSERT INTO settings (setting_key, setting_value) VALUES ('admin_password', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)", [newPassword]);
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      await db.query("UPDATE users SET password = ? WHERE username = ?", [hashedPassword, username]);
       res.json({ message: "Password updated successfully" });
     } catch (error) {
       res.status(500).json({ error: "Failed to update password" });

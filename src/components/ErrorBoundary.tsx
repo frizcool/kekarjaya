@@ -1,4 +1,4 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { ServerError } from '../pages/ServerError';
 
 interface Props {
@@ -27,6 +27,6 @@ export class ErrorBoundary extends Component<Props, State> {
       return <ServerError />;
     }
 
-    return this.props.children;
+    return (this as any).props.children;
   }
 }
